@@ -15,5 +15,6 @@
             "name": "Julio Gomes",
             "email": "juliogomes26297@gmail.com"
         }
-    ]
+    ],
+    "minimum-stability": "dev"
 }
