@@ -31,7 +31,7 @@ class Request
 
     private function filterArray(string $key, array $data, string $default) : string
     {
-        return array_key_exists($key, $data) && !is_numeric($data[$key]) && !empty($data[$key]) ? $data[$key] : $default;
+        return array_key_exists($key, $data) && $data[$key] !== null ? $data[$key] : $default;
     }
 
     private function filterInput(int $input) : array
