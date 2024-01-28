@@ -51,12 +51,12 @@ class Session
         return isset($_SESSION[$key]) ? $_SESSION[$key] : '';
     }
 
-    public function is_logged() : bool
+    public function isLogged() : bool
     {
         return !empty($this->get('user'));
     }
 
-    public function is_valid_CSRF(string $csrf) : bool
+    public function isValidCSRF(string $csrf) : bool
     {
         return hash_equals($_SESSION['csrf'], $csrf);
     }
