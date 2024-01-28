@@ -21,15 +21,15 @@ class Request
 
     public function post(string $key, string $default = '') : string
     {
-        return $this->filterArray($key, $this->post, $default);
+        return self::filterArray($key, $this->post, $default);
     }
 
     public function query(string $key, string $default = '') : string
     {
-        return $this->filterArray($key, $this->query, $default);
+        return self::filterArray($key, $this->query, $default);
     }
 
-    private function filterArray(string $key, array $data, string $default) : string
+    public static function filterArray(string $key, array $data, string $default) : mixed
     {
         return array_key_exists($key, $data) && $data[$key] !== null ? $data[$key] : $default;
     }
