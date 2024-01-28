@@ -19,12 +19,12 @@ class Request
         $this->query    = $this->filterInput(INPUT_GET);
     }
 
-    public function post(string $key, mixed $default = '') : string
+    public function post(string $key, mixed $default = '') : mixed
     {
         return self::filterArray($key, $this->post, $default);
     }
 
-    public function query(string $key, mixed $default = '') : string
+    public function query(string $key, mixed $default = '') : mixed
     {
         return self::filterArray($key, $this->query, $default);
     }
