@@ -29,7 +29,7 @@ class Request
         return self::filterArray($key, $this->query, $default);
     }
 
-    public static function filterArray(string $key, array $data, string $default) : mixed
+    public static function filterArray(string $key, array $data, mixed $default) : mixed
     {
         return array_key_exists($key, $data) && $data[$key] !== null ? $data[$key] : $default;
     }
