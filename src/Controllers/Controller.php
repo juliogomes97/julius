@@ -10,9 +10,9 @@ abstract class Controller
     protected Request $request;
     protected Session $session;
 
-    public function __construct(Request $request)
+    public function __construct(Request $request, array $session_params = [])
     {
         $this->request = $request; 
-        $this->session = new Session;   
+        $this->session = new Session($session_params);   
     }
 }

@@ -4,10 +4,20 @@ namespace Julius\Framework\Models;
 
 class Session
 {
-    public function __construct()
+    public function __construct(array $session_params = [])
     {
         if (!isset($_SESSION))
         {
+            session_set_cookie_params(array_merge([
+                    'lifetime'  => 86400, // 1 dia
+                    'path'      => '/',
+                    'secure'    => true,
+                    'httponly'  => true,
+                    'samesite'  => 'Strict'
+                ], 
+                $session_params)
+            );
+
             session_start();
         }
 
@@ -51,7 +61,7 @@ class Session
         return isset($_SESSION[$key]) ? $_SESSION[$key] : '';
     }
 
-    public function isLogged() : bool
+    public function isAuthenticated() : bool
     {
         return !empty($this->get('user'));
     }
