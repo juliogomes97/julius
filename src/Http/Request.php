@@ -4,10 +4,10 @@ namespace Julius\Framework\Http;
 
 class Request
 {
-    public string  $method;
-    public string  $uri;
-    public array   $post;
-    public array   $query;
+    public readonly string  $method;
+    public readonly string  $uri;
+    public readonly array   $post;
+    public readonly array   $query;
 
     public function __construct()
     {
