@@ -1,13 +1,11 @@
 {
     "name": "juliogomes26297/julius",
     "description": "Julius é um framework simples para criar aplicações Web com arquitetura MVC",
-    "require": {
-        "twig/twig": "^3.8"
-    },
     "license": "MIT",
     "autoload": {
         "psr-4": {
-            "Julius\\Framework\\": "src/"
+            "Julius\\Framework\\": "src/",
+            "Julius\\Test\\": "test"
         }
     },
     "authors": [
@@ -16,5 +14,8 @@
             "email": "juliogomes26297@gmail.com"
         }
     ],
+    "require": {
+        "twig/twig": "^3.8"
+    },
     "minimum-stability": "dev"
 }
