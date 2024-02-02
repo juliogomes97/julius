@@ -6,19 +6,17 @@ use \Julius\Framework\Http\Request;
 
 class Router
 {
+    private static bool $found;
+
     private Request $request;
-    private bool    $found;
+    private array   $uriArray;
 
-    private array   $current_group_uri_array;
-    private string  $current_group_uri;
-
-    public function __construct()
+    public function __construct(array $uriArray = [])
     {
-        $this->request  = new Request;
-        $this->found    = false;
+        self::$found    = false;
 
-        $this->current_group_uri_array  = [];
-        $this->current_group_uri        = '';
+        $this->request  = new Request;
+        $this->uriArray = $uriArray;
     }
 
     /**
@@ -34,12 +32,19 @@ class Router
      */
     public function add(string $method, string $uri, string $controller, string $handler = 'get', array $regex = []) : void
     {
-        if($this->found || strcasecmp($this->request->method, $method) !== 0)
+        if(self::$found || strcasecmp($this->request->method, $method) !== 0)
             return;
-        
-        $uri = trim($this->current_group_uri.$uri, '/');
 
-        $processed_uri = $this->processRegex($uri, $regex);
+        $uris = $this->uriArray;
+
+        if($uri != '/')
+        {
+            $uris[] = $uri;
+        }
+
+        $route = implode('/', $uris);
+
+        $processed_uri = $this->processRegex($route, $regex);
 
         $pattern = $this->buildPattern($processed_uri);
         
@@ -89,7 +94,7 @@ class Router
      */
     public function fallback(string $controller, string $handler = 'get') : void
     {
-        if($this->found)
+        if(self::$found)
             return;
         
         $this->invoke($controller, $handler, []);
@@ -105,43 +110,35 @@ class Router
      */
     public function group(string $uri, callable $callback) : void
     {
-        if($this->found)
+        if(self::$found)
             return;
 
-        $uri = $this->current_group_uri.$uri;
+        $uriArray = explode('/', $uri);
 
-        $request_uri_array  = explode('/', $this->request->uri);
-        $group_uri_array    = explode('/', trim($uri, '/'));
+        $newUriArray = array_merge($this->uriArray, $uriArray);
 
-        foreach($request_uri_array as $key => $current_uri)
+        $newUriArraySize = sizeof($newUriArray);
+
+        $rquestUriArray = explode('/', $this->request->uri);
+
+        foreach($newUriArray as $key => $newUriArrayValue)
         {
-            if(array_key_exists($key, $this->current_group_uri_array) && $current_uri == $this->current_group_uri[$key])
+            if(array_key_exists($key, $rquestUriArray))
             {
-                continue;
-            }
-
-            if(array_key_exists($key, $group_uri_array) && strpos($group_uri_array[$key], ':') === 0)
-            {
-                $this->current_group_uri_array[$key] = $group_uri_array[$key];
-
-                continue;
-            }
-
-            if(array_key_exists($key, $group_uri_array) && $current_uri == $group_uri_array[$key])
-            {
-                $this->current_group_uri_array[$key] = $current_uri;
+                if($rquestUriArray[$key] == $newUriArrayValue || strpos($newUriArrayValue, ':') === 0)
+                {
+                    $newUriArraySize--;
+                }
             }
         }
 
-        if($group_uri_array === $this->current_group_uri_array)
+        if($newUriArraySize === 0)
         {
-            $this->current_group_uri = implode('/', $group_uri_array);
-
-            $callback($this);
+            $callback(new self($newUriArray));
         }
         else
         {
-            $this->current_group_uri = '';
+            $this->uriArray = array_slice($newUriArray, 0, -sizeof($uriArray));
         }
     }
 
@@ -166,6 +163,6 @@ class Router
 
         $controller_object->{$handler}(...$parameters);
 
-        $this->found = true;
+        self::$found = true;
     }
 }
