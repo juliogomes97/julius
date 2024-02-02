@@ -6,7 +6,7 @@ use Julius\Framework\Controllers\Controller;
 
 class NotFoundController extends Controller
 {
-    public function get() : void
+    public function index() : void
     {
         echo 'Controller::NotFoundController';
     }

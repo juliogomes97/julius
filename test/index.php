@@ -2,68 +2,44 @@
 
 require_once dirname(__DIR__) . '/vendor/autoload.php';
 
-use Julius\Framework\Routing\Router;
+use \Julius\Framework\Http\Request;
+use \Julius\Framework\Routing\Router;
 
-$router = new Router;
+Router::boot(new Request);
 
-$router->get('/', \Julius\Test\Controllers\LandingController::class);
+// Landing page route
+Router::get('/', [\Julius\Test\Controllers\LandingController::class, 'index']);
 
-$router->group('dashboard', function(Router $router)
+// Dashboard routes
+Router::group('/dashboard', function()
 {
-    // Controlador por defeito ao acessar Uri => /dashboard
-    $router->get('',        \Julius\Test\Controllers\Dashboard\DashboardController::class);
+    Router::get('/', [\Julius\Test\Controllers\Dashboard\DashboardController::class, 'index']);
 
-    $router->group('posts', function(Router $router)
+    Router::group('posts', function()
     {
-        $router->get('/',   \Julius\Test\Controllers\Dashboard\PostsController::class);
+        Router::get('/', [\Julius\Test\Controllers\Dashboard\PostsController::class, 'index']);
     });
 
-    $router->group('settings', function(Router $router)
+    Router::group('settings', function()
     {
-        // Controlador por defeito ao acessar Uri => /dashboard/settings
-        $router->get('/',            \Julius\Test\Controllers\Dashboard\Settings\SettingsController::class);
-        
-        // Uri => /dashboard/settings/account
-        $router->get('account',     \Julius\Test\Controllers\Dashboard\Settings\AccoutController::class);
-        // Uri => /dashboard/settings/groups
-        $router->get('groups',      \Julius\Test\Controllers\Dashboard\Settings\GroupsController::class);
+        Router::get('/',        [\Julius\Test\Controllers\Dashboard\Settings\SettingsController::class, 'index']);
+        Router::get('/account', [\Julius\Test\Controllers\Dashboard\Settings\AccoutController::class, 'index']);
+        Router::get('/groups',  [\Julius\Test\Controllers\Dashboard\Settings\GroupsController::class, 'index']);
     });
 });
 
-$router->group('user/:id', function(Router $router)
+// User routes -> id only number
+Router::group('/user/:id', function()
 {
-    // :id só aceita numeros
-    $regex = [':id' => '([0-9]+)'];
-
-    // Controlador por defeito ao acessar Uri => /user/{0-9}
-    $router->get('/',            \Julius\Test\Controllers\User\UserController::class, $regex);
-    // Uri => /user/{0-9}/profile
-    $router->get('profile',     \Julius\Test\Controllers\User\ProfileController::class, $regex);
-
-    $router->group('settings', function(Router $router)
-    {
-        // :id tem que ser igual a 'session'
-        $regex = [':id' => 'session'];
-
-        // Controlador por defeito ao acessar Uri => /user/session/settings
-        $router->get('/', \Julius\Test\Controllers\User\Settings\SettingsController::class, $regex);
-        
-        $router->group(':hello/privacy', function(Router $router)
-        {
-            // :id tem que ser igual a 'none'
-            // :hello tem que ser igual 'world'
-            $regex = [':id' => 'none', ':hello' => 'world'];
-
-            // Controlador por defeito ao acessar Uri => /user/none/settings/world/privacy
-            $router->get('/', \Julius\Test\Controllers\User\Settings\PrivacyController::class, $regex);
-        });
-    });
-
+    Router::get('/', [\Julius\Test\Controllers\User\UserController::class, 'index'], [
+        'id' => '([0-9]+)'
+    ]);
+    Router::get('/profile', [\Julius\Test\Controllers\User\ProfileController::class, 'index'], [
+        'id' => '([0-9]+)'
+    ]);
 });
 
+Router::add('POST', '/user/list', [\Julius\Test\Controllers\UsersListController::class, 'index']);
 
-$router->get('user/test', \Julius\Test\Controllers\UsersListController::class);
-
-$router->fallback(\Julius\Test\Controllers\NotFoundController::class);
-
-//var_dump($request);
+// Exception route
+Router::fallback([\Julius\Test\Controllers\NotFoundController::class, 'index']);

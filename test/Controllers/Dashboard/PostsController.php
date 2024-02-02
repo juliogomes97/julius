@@ -6,7 +6,7 @@ use Julius\Framework\Controllers\Controller;
 
 class PostsController extends Controller
 {
-    public function get() : void
+    public function index() : void
     {
         echo 'Controller::PostsController';
     }

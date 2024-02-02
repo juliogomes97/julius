@@ -15,4 +15,12 @@ abstract class Controller
         $this->request = $request; 
         $this->session = new Session($session_params);   
     }
+
+    public function __call(string $method, $a) 
+    {
+        echo json_encode([
+            'status' => 500,
+            'message' => 'O controlador {'. get_class($this) .'} não tem o método {'. $method .'} defenido'
+        ]);
+    }
 }

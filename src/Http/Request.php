@@ -2,12 +2,14 @@
 
 namespace Julius\Framework\Http;
 
-class Request
+use \Julius\Framework\Http\Interface\RequestInterface;
+
+class Request implements RequestInterface
 {
-    public readonly string  $method;
-    public readonly string  $uri;
-    public readonly array   $post;
-    public readonly array   $query;
+    private string  $method;
+    private string  $uri;
+    private array   $post;
+    private array   $query;
 
     public function __construct()
     {
@@ -19,17 +21,27 @@ class Request
         $this->query    = $this->filterInput(INPUT_GET);
     }
 
-    public function post(string $key, mixed $default = '') : mixed
+    public function getUri() : string
+    {
+        return $this->uri;
+    }
+
+    public function getMethod(): string
+    {
+        return $this->method;
+    }
+
+    public function getPost(string $key, mixed $default = '') : mixed
     {
         return self::filterArray($key, $this->post, $default);
     }
 
-    public function query(string $key, mixed $default = '') : mixed
+    public function getQuery(string $key, mixed $default = '') : mixed
     {
         return self::filterArray($key, $this->query, $default);
     }
 
-    public static function filterArray(string $key, array $data, mixed $default) : mixed
+    private static function filterArray(string $key, array $data, mixed $default) : mixed
     {
         return array_key_exists($key, $data) && $data[$key] !== null ? $data[$key] : $default;
     }

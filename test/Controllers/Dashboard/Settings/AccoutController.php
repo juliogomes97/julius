@@ -6,7 +6,7 @@ use Julius\Framework\Controllers\Controller;
 
 class AccoutController extends Controller
 {
-    public function get() : void
+    public function index() : void
     {
         echo 'Controller::AccoutController';
     }

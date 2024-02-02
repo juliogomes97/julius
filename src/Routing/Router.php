@@ -2,167 +2,146 @@
 
 namespace Julius\Framework\Routing;
 
-use \Julius\Framework\Http\Request;
+use Julius\Framework\Http\Interface\RequestInterface;
 
 class Router
 {
-    private static bool $found;
+    private static RequestInterface $request;
 
-    private Request $request;
-    private array   $uriArray;
+    private static bool    $routeMatched;
+    private static array   $groupStack;
 
-    public function __construct(array $uriArray = [])
+    public static function boot(RequestInterface $request)
     {
-        self::$found    = false;
+        self::$request = &$request;
 
-        $this->request  = new Request;
-        $this->uriArray = $uriArray;
+        self::$routeMatched = false;
+        self::$groupStack   = [];
     }
 
-    /**
-     * Cria uma rota
-     *
-     * @param string    $method     [GET; POST; DELETE; ...]
-     * @param string    $uri        Caminho para aceder ao controlador Exemplo: /users
-     * @param string    $controller Nome da class do controllador Exemplo: \Julius\Test\Controllers\LandingController::class
-     * @param string    $handler    Nome da função ao chamar
-     * @param array     $regex      Expresão do parametros Exemplo: ['id' => '([0-9]+)']
-     * 
-     * @return void
-     */
-    public function add(string $method, string $uri, string $controller, string $handler = 'get', array $regex = []) : void
-    {
-        if(self::$found || strcasecmp($this->request->method, $method) !== 0)
-            return;
-
-        $uris = $this->uriArray;
-
-        if($uri != '/')
+    public static function add(string $method, string $uri, array $handler, array $regex = []) : void
+    {    
+        // Verifica se já foi encontrado uma rota ou se o método é o mesmo que requisição
+        if(!self::$routeMatched || strcasecmp(self::$request->getMethod(), $method) === 0)
         {
-            $uris[] = $uri;
-        }
-
-        $route = implode('/', $uris);
-
-        $processed_uri = $this->processRegex($route, $regex);
-
-        $pattern = $this->buildPattern($processed_uri);
-        
-        if(preg_match('#^'.$pattern.'$#', $this->request->uri, $parameters))
-        {
-            array_shift($parameters);
-
-            $this->invoke($controller, $handler, $parameters);
-        }
-    }
-
-    /**
-     * Cria uma rota com o metodo 'GET', o nome da função por defeite é 'get()'
-     *
-     * @param string    $uri        Caminho para aceder ao controlador Exemplo: /users
-     * @param string    $controller Nome da class do controllador Exemplo: \Julius\Test\Controllers\LandingController::class
-     * @param array     $regex      Expresão do parametros Exemplo: ['id' => '([0-9]+)']
-     * 
-     * @return void
-     */
-    public function get(string $uri, string $controller, array $regex = []) : void
-    {
-        $this->add('GET', $uri, $controller, 'get', $regex);
-    }
-
-    /**
-     * Cria uma rota com o metodo 'POST', o nome da função por defeite é 'post()'
-     *
-     * @param string    $uri        Caminho para aceder ao controlador Exemplo: /users
-     * @param string    $controller Nome da class do controllador Exemplo: \Julius\Test\Controllers\LandingController::class
-     * @param array     $regex      Expresão do parametros Exemplo: ['id' => '([0-9]+)']
-     * 
-     * @return void
-     */
-    public function post(string $uri, string $controller, array $regex = []) : void
-    {
-        $this->add('POST', $uri, $controller, 'post', $regex);
-    }
-
-    /**
-     * Caso nenhuma rota for encontrada será chamado o fallback()
-     *
-     * @param string    $controller Nome da class do controllador Exemplo: \Julius\Test\Controllers\NotFoundController::class
-     * @param string    $handler    Nome da função ao chamar, por defeito é 'get()'
-     * 
-     * @return void
-     */
-    public function fallback(string $controller, string $handler = 'get') : void
-    {
-        if(self::$found)
-            return;
-        
-        $this->invoke($controller, $handler, []);
-    }
-
-    /**
-     * Criar grupos de rotas
-     *
-     * @param string    $uri        Nome pai da rota
-     * @param string    $callback   O parametros do callback è do tipo Julius\Framework\Routing\Router
-     * 
-     * @return void
-     */
-    public function group(string $uri, callable $callback) : void
-    {
-        if(self::$found)
-            return;
-
-        $uriArray = explode('/', $uri);
-
-        $newUriArray = array_merge($this->uriArray, $uriArray);
-
-        $newUriArraySize = sizeof($newUriArray);
-
-        $rquestUriArray = explode('/', $this->request->uri);
-
-        foreach($newUriArray as $key => $newUriArrayValue)
-        {
-            if(array_key_exists($key, $rquestUriArray))
+            $route = trim(self::getUriGroupStack() . $uri, '/');
+            
+            $pattern = self::processRegex($route, $regex);
+            
+            if($parameters = self::matchRoute($pattern))
             {
-                if($rquestUriArray[$key] == $newUriArrayValue || strpos($newUriArrayValue, ':') === 0)
+                self::invoke($handler, $parameters);
+            }
+        }
+    }
+
+    public static function group(string $prefix, callable $callback) : void
+    {
+        if(!self::$routeMatched)
+        {
+            self::$groupStack[] = trim($prefix, '/');
+
+            $groupUri   = explode('/', self::getUriGroupStack());
+            $requestUri = explode('/', self::$request->getUri());
+
+            if(self::compareArrayDifference($groupUri, $requestUri))
+            {
+                $callback();
+            }
+
+            array_pop(self::$groupStack);
+        }
+    }
+
+    public static function fallback(array $handler) : void
+    {
+        if(!self::$routeMatched)
+        {
+            self::invoke($handler, []);
+        }
+    }
+
+    public static function get(string $uri, array $handler, array $regex = []) : void
+    {
+        self::add('GET', $uri, $handler, $regex);
+    }
+
+    public static function post(string $uri, array $handler, array $regex = []) : void
+    {
+        self::add('GET', $uri, $handler, $regex);
+    }
+
+    public static function put(string $uri, array $handler, array $regex = []) : void
+    {
+        self::add('PUT', $uri, $handler, $regex);
+    }
+
+    public static function patch(string $uri, array $handler, array $regex = []) : void
+    {
+        self::add('PATCH', $uri, $handler, $regex);
+    }
+
+    public static function delete(string $uri, array $handler, array $regex = []) : void
+    {
+        self::add('DELETE', $uri, $handler, $regex);
+    }
+
+    public static function options(string $uri, array $handler, array $regex = []) : void
+    {
+        self::add('OPTIONS', $uri, $handler, $regex);
+    }
+
+    private static function processRegex(string $uri, array $regex) : string
+    {
+        foreach ($regex as $key => $pattern)
+        {
+            $uri = str_replace(':'. $key, $pattern, $uri);
+        }
+
+        return preg_replace('/:\w+/', '([\w]+)', $uri);
+    }
+
+    private static function matchRoute(string $pattern) : false | array
+    {
+        $uri = self::$request->getUri();
+
+        if(preg_match('#^'.$pattern.'$#', $uri, $parameters))
+        {
+            return $parameters;
+        }
+
+        return false;
+    }
+
+    private static function getUriGroupStack() : string
+    {
+        return implode('/', self::$groupStack);
+    }
+
+    private static function compareArrayDifference(array $array1, array $array2) : bool
+    {
+        $size = sizeof($array1);
+
+        foreach($array1 as $key => $value)
+        {
+            if(array_key_exists($key, $array2))
+            {
+                if($array2[$key] == $value || strpos($value, ':') === 0)
                 {
-                    $newUriArraySize--;
+                    $size--;
                 }
             }
         }
 
-        if($newUriArraySize === 0)
-        {
-            $callback(new self($newUriArray));
-        }
-        else
-        {
-            $this->uriArray = array_slice($newUriArray, 0, -sizeof($uriArray));
-        }
+        return $size === 0;
     }
 
-    private function processRegex(string $uri, array $regex) : string
+    private static function invoke(array $handler, array $parameters) : void
     {
-        foreach ($regex as $key => $pattern)
-        {
-            $uri = str_replace($key, $pattern, $uri);
-        }
+        $controller = new $handler[0](self::$request);
 
-        return $uri;
-    }
+        $controller->{$handler[1]}(...$parameters);
 
-    private function buildPattern(string $uri) : string
-    {
-        return preg_replace('/:\w+/', '([\w]+)', $uri);
-    }
-
-    private function invoke(string $controller, string $handler, array $parameters) : void
-    {
-        $controller_object = new $controller($this->request);
-
-        $controller_object->{$handler}(...$parameters);
-
-        self::$found = true;
+        self::$routeMatched = true;
     }
 }
