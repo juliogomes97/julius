@@ -2,12 +2,15 @@
 
 namespace Julius\Test\Controllers;
 
-use Julius\Framework\Controllers\Controller;
+use \Julius\Framework\Http\HttpHandler;
+use \Julius\Test\Controllers\Controller;
 
 class NotFoundController extends Controller
 {
     public function index() : void
     {
-        echo 'Controller::NotFoundController';
+        self::statusCode(HttpHandler::STATUS_NOT_FOUND);
+
+        self::view('NotFoundView.html');
     }
 }

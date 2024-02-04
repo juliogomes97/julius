@@ -12,16 +12,17 @@ final class Database
     private PDO $handler;
     private PDOStatement | false $statement;
     
-    public function __construct(string $host, string $user, string $password, string $database, int $port = 3306, array $options = [
-        PDO::ATTR_PERSISTENT    => true,
-        PDO::ATTR_ERRMODE       => PDO::ERRMODE_EXCEPTION
-    ])
+    public function __construct(string $host, string $user, string $password, string $database, int $port = 3306, array $options = [])
     {
         $dsn = "mysql:host={$host};port={$port};dbname={$database};charset=utf8";
 
         try
         {
-            $this->handler = new PDO($dsn, $user, $password, $options);
+            $this->handler = new PDO($dsn, $user, $password, array_replace([
+                    PDO::ATTR_PERSISTENT            => true,
+                    PDO::ATTR_ERRMODE               => PDO::ERRMODE_EXCEPTION,
+                    PDO::ATTR_DEFAULT_FETCH_MODE    => PDO::FETCH_ASSOC
+            ], $options));
         }
         catch (PDOException $e)
         {
@@ -72,7 +73,7 @@ final class Database
         return false;
     }
 
-    public function setFetchMode(array $parameters = [PDO::FETCH_ASSOC]) : void
+    public function setFetchMode(array $parameters = []) : void
     {
         $this->statement->setFetchMode(...$parameters);
     }

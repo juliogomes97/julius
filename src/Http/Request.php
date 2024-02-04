@@ -4,7 +4,7 @@ namespace Julius\Framework\Http;
 
 use \Julius\Framework\Http\Interface\RequestInterface;
 
-class Request implements RequestInterface
+final class Request implements RequestInterface
 {
     private string  $method;
     private string  $uri;

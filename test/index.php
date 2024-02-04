@@ -8,7 +8,7 @@ use \Julius\Framework\Routing\Router;
 Router::boot(new Request);
 
 // Landing page route
-Router::get('/', [\Julius\Test\Controllers\LandingController::class, 'index']);
+Router::get('/b-b', [\Julius\Test\Controllers\LandingController::class, 'index']);
 
 // Dashboard routes
 Router::group('/dashboard', function()

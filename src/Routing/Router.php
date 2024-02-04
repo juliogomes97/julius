@@ -19,7 +19,7 @@ class Router
         self::$groupStack   = [];
     }
 
-    public static function add(string $method, string $uri, array $handler, array $regex = []) : void
+    public static function add(string $method, string $uri, array | callable $handler, array $regex = []) : void
     {    
         // Verifica se já foi encontrado uma rota ou se o método é o mesmo que requisição
         if(!self::$routeMatched || strcasecmp(self::$request->getMethod(), $method) === 0)
@@ -30,6 +30,8 @@ class Router
             
             if($parameters = self::matchRoute($pattern))
             {
+                array_shift($parameters);
+
                 self::invoke($handler, $parameters);
             }
         }
@@ -53,7 +55,7 @@ class Router
         }
     }
 
-    public static function fallback(array $handler) : void
+    public static function fallback(array | callable $handler) : void
     {
         if(!self::$routeMatched)
         {
@@ -61,32 +63,32 @@ class Router
         }
     }
 
-    public static function get(string $uri, array $handler, array $regex = []) : void
+    public static function get(string $uri, array | callable $handler, array $regex = []) : void
     {
         self::add('GET', $uri, $handler, $regex);
     }
 
-    public static function post(string $uri, array $handler, array $regex = []) : void
+    public static function post(string $uri, array | callable $handler, array $regex = []) : void
     {
-        self::add('GET', $uri, $handler, $regex);
+        self::add('POST', $uri, $handler, $regex);
     }
 
-    public static function put(string $uri, array $handler, array $regex = []) : void
+    public static function put(string $uri, array | callable $handler, array $regex = []) : void
     {
         self::add('PUT', $uri, $handler, $regex);
     }
 
-    public static function patch(string $uri, array $handler, array $regex = []) : void
+    public static function patch(string $uri, array | callable $handler, array $regex = []) : void
     {
         self::add('PATCH', $uri, $handler, $regex);
     }
 
-    public static function delete(string $uri, array $handler, array $regex = []) : void
+    public static function delete(string $uri, array | callable $handler, array $regex = []) : void
     {
         self::add('DELETE', $uri, $handler, $regex);
     }
 
-    public static function options(string $uri, array $handler, array $regex = []) : void
+    public static function options(string $uri, array | callable $handler, array $regex = []) : void
     {
         self::add('OPTIONS', $uri, $handler, $regex);
     }
@@ -136,12 +138,19 @@ class Router
         return $size === 0;
     }
 
-    private static function invoke(array $handler, array $parameters) : void
+    private static function invoke(array | callable $handler, array $parameters) : void
     {
+        self::$routeMatched = true;
+
+        if(is_callable($handler))
+        {
+            $handler(self::$request, ...$parameters);
+
+            return;
+        }
+
         $controller = new $handler[0](self::$request);
 
         $controller->{$handler[1]}(...$parameters);
-
-        self::$routeMatched = true;
     }
 }
