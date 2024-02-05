@@ -22,7 +22,7 @@ class Router
     public static function add(string $method, string $uri, array | callable $handler, array $regex = []) : void
     {    
         // Verifica se já foi encontrado uma rota ou se o método é o mesmo que requisição
-        if(!self::$routeMatched || strcasecmp(self::$request->getMethod(), $method) === 0)
+        if(!self::$routeMatched && strcasecmp(self::$request->getMethod(), $method) === 0)
         {
             $route = trim(self::getUriGroupStack() . $uri, '/');
             
