@@ -17,7 +17,6 @@
 ## Primeiro passos
 Antes de começar usar o sistema de rotas deve iniciar a método boot()
 ``` php
-
 use Julius\Framework\Http\Request;
 use Julius\Framework\Routing\Router;
 
@@ -25,6 +24,9 @@ Router::boot(new Request);
 
 // Rotas ...
 ```
+> [!TIP]
+> As tuas rotas deve estar no index.php
+
 ## Rota mais simples
 Aqui temos um exemplo de uma rota mais simples possível, sem complicações
 ``` php
@@ -37,7 +39,7 @@ Router::get('/bem-vindo', function(Request $request) {
 > [!IMPORTANT]
 > Todas as rotas devem começar com `/`
 ## Métodos
-A class ´Router´ disponibiliza alguns métodos para controle de rota:
+A class `Router` disponibiliza alguns métodos para controle de rota:
 ``` php
 Router::get();
 Router::post();
@@ -190,6 +192,8 @@ class LandingController extends MasterController
     }
 }
 
+```
+``` php
 // NotFoundController.php
 
 namespace MyApp\Controllers;
@@ -235,6 +239,8 @@ class UserController extends MasterController
     }
 }
 
+```
+``` php
 // index.php
 
 Router::get('/utilizador/:id', [\MyApp\Controller\UserController::class, 'getUser']);
