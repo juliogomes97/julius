@@ -109,16 +109,16 @@ O grupo tambem pode receber parâmetros, vamos ver um exemplo
 ``` php
 Router::group('utilizador/:id', function() {
   // Rota: /utilizador/123 <- qualquer coisa
-  Router::get('/', function(Request $request) {
-    echo "Aqui é o landing page do utilizador/id";
+  Router::get('/', function(Request $request, string $user_id) {
+    echo "Aqui é o landing page do utilizador/{$user_id}";
   });
   // Rota: /utilizador/456/postagens
-  Router::get('/postagens', function(Request $request) {
-    echo "Estamos na página de postagens do utilizador 456";
+  Router::get('/postagens', function(Request $request, string $user_id) {
+    echo "Estamos na página de postagens do utilizador {$user_id}";
   });
   // Rota: /utilizador/780/fotos
-  Router::get('/fotos', function(Request $request) {
-    echo "Estamos na página de fotos do utilizador 780";
+  Router::get('/fotos', function(Request $request, string $user_id) {
+    echo "Estamos na página de fotos do utilizador {$user_id}";
   });
 });
 ```
@@ -132,12 +132,12 @@ Router::group('utilizador/:id', function() {
   $regex = ['id' => '([0-9]+)'];
 
   // Rota: /utilizador/123 <- qualquer coisa
-  Router::get('/', function(Request $request) {
-    echo "Aqui é o landing page do utilizador/id";
+  Router::get('/', function(Request $request, string $user_id) {
+    echo "Aqui é o landing page do utilizador/{$user_id}";
   }, $regex);
   // Rota: /utilizador/456/postagens
-  Router::get('/postagens', function(Request $request) {
-    echo "Estamos na página de postagens do utilizador 456";
+  Router::get('/postagens', function(Request $request, string $user_id) {
+    echo "Estamos na página de postagens do utilizador {$user_id}";
   }, $regex);
   // Rota: /utilizador/780/fotos
   Router::get('/fotos', [\MyApp\Controllers\UserPhotosController::class, 'index'], $regex);
